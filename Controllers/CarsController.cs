@@ -15,18 +15,26 @@ namespace CarApi.Controllers
             _carsService = carsService;
         }
 
-        // GET: api/Cars
+        // GET: api/Cars?page=1&perPage=10
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Car>>> GetCars()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<Car>>> GetCars(
+            [FromQuery(Name = "page")] int page,
+            [FromQuery(Name = "perPage")] int perPage
+        )
         {
             IEnumerable<Car> cars = await _carsService.GetCars();
+
+            Console.WriteLine($"Page: {page}, PerPage: {perPage}");
 
             return Ok(cars);
         }
 
         // GET: api/Cars/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Car>> GetCar(long id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Car>> GetCar([FromRoute] long id)
         {
             Car? car = await _carsService.GetCar(id);
 
@@ -36,8 +44,14 @@ namespace CarApi.Controllers
         }
 
         // PUT: api/Cars/5
+        // PATCH: api/Cars/5
+        // JSON Body: { Manufacturer: "Ford", Model: "Focus", Year: 2010 }
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCar(long id, [FromBody] Car car)
+        [HttpPatch("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> PutCar([FromRoute] long id, [FromBody] Car car)
         {
             if (id != car.Id) return BadRequest();
 
@@ -49,7 +63,9 @@ namespace CarApi.Controllers
         }
 
         // POST: api/Cars
+        // JSON Body: { Manufacturer: "Ford", Model: "Mustang", Year: 1974 }
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<Car>> PostCar([FromBody] Car car)
         {
             Car newCar = await _carsService.AddCar(car);
@@ -60,8 +76,11 @@ namespace CarApi.Controllers
         }
 
         // DELETE: api/Cars/5
+        // [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCar(long id)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCar([FromRoute] long id)
         {
             Car? car = await _carsService.DeleteCar(id);
 
